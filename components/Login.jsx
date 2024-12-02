@@ -6,11 +6,15 @@ export default function SignIn() {
         email: "",
         password: ""
     })
+    const [error, setError] = useState(null)
+    const [success, setSuccess] = useState(null)
+    const [alert, setAlert] = useState(false)
     // handle change
     const handleChange = (e) => {
         const { name, value } = e.target
         setformValue({
-            name: value
+            ...formValue,
+            [name]: value
         })
 
 
@@ -18,21 +22,22 @@ export default function SignIn() {
     }
     // validate 
     const validate = () => {
-        const newErrors = { username: "", email: "", password: "" };
+        const newErrors = { email: "", password: "" };
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        console.log(formValue.email)
+        console.log(formValue.password)
 
+        // if (!formValue.email.toString().trim()) {
+        //   newErrors.email = "Email is required.";
+        // } else if (!emailRegex.test(formValue.email)) {
+        //   newErrors.email = "Enter a valid email address.";
+        // }
 
-        if (!formValue.email.trim()) {
-            newErrors.email = "Email is required.";
-        } else if (!emailRegex.test(formValue.email)) {
-            newErrors.email = "Enter a valid email address.";
-        }
-
-        if (!formValue.password.trim()) {
-            newErrors.password = "Password is required.";
-        } else if (formValue.password.length < 6) {
-            newErrors.password = "Password must be at least 6 characters.";
-        }
+        // if (!formValue.password.toString().trim()) {
+        //   newErrors.password = "Password is required.";
+        // } else if (formValue.password.length < 6) {
+        //   newErrors.password = "Password must be at least 6 characters.";
+        // }
 
         setError(newErrors);
         return !Object.values(newErrors).some((error) => error);
@@ -85,7 +90,7 @@ export default function SignIn() {
                                 type="email"
                                 value={formValue.email}
                                 onChange={handleChange}
-                                autoComplete="email"
+                                // autoComplete="email"
                                 required
                                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm pl-1"
                             />
@@ -116,7 +121,7 @@ export default function SignIn() {
                                 type="password"
                                 value={formValue.password}
                                 onChange={handleChange}
-                                autoComplete="current-password"
+                                // autoComplete="current-password"
                                 required
                                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm pl-1"
                             />
