@@ -1,0 +1,19 @@
+user signup
+    - first name
+    - last name
+    - username  @unique
+    - email     @unique
+    - password  @a-z, A-Z, 0-9, special character @min 8, @max 21
+    - role by default is user   @user
+    - verified      - by false
+    - dob
+    - gender
+    - created_at
+    - updated_at
+login
+    - email or username
+    - password
+backend
+    - user model
+    - controller
+    - route
