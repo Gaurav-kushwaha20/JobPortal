@@ -1,7 +1,8 @@
-const { UserSighUp } = require('../controller/UserController')
+const { UserSighUp, UserLogin } = require('../controller/UserController')
 
 const router = require('express').Router()
 
-router.get('/register', UserSighUp)
+router.post('/register', UserSighUp)
+router.post('/login', UserLogin)
 
-module.exports  = router
+module.exports = router

@@ -39,11 +39,11 @@ const UserSchema = new mongoose.Schema({
     },
     date_of_birth: {
         type: Date,
-        required: true
+        required: false
     },
     gender: {
         type: String,
-        required: true
+        required: false
     },
     profile_picture: {
         type: String,
