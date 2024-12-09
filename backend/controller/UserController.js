@@ -2,30 +2,31 @@ const Token = require('../models/TokenModel');
 const User = require('../models/UserModel');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto')
-const nodemailer = require('nodemailer')
+const nodemailer = require('nodemailer');
+const sendEmailToUser = require('../middleware/emailSender');
 
 exports.UserSighUp = async (req, res) => {
     try {
         const { first_name, last_name, username, email, password, date_of_birth, gender } = req.body;
 
-        console.log(first_name, last_name, username, email, password, date_of_birth, gender);
+        // console.log(first_name, last_name, username, email, password, date_of_birth, gender);
 
         // Check if username or email already exists
         let user = await User.findOne({ username: username });
         if (user) {
-            return res.status(400).json({ Error: "Username already exists" });
+            return res.status(400).json({ error: "Username already exists" });
         }
 
         user = await User.findOne({ email: email });
         if (user) {
-            return res.status(400).json({ Error: "Email already taken!" });
+            return res.status(400).json({ error: "Email already taken!" });
         }
 
         // Check if saltRounds is a valid number
         const saltRounds = parseInt(process.env.SALTROUNDS);
         if (isNaN(saltRounds)) {
             console.log("Invalid SALTROUNDS value. Please check your environment variable.");
-            return res.status(500).json({ Error: "Internal server error. Invalid SALTROUNDS value." });
+            return res.status(500).json({ error: "Internal server error. Invalid SALTROUNDS value." });
         }
 
         // Encrypt the password
@@ -50,65 +51,29 @@ exports.UserSighUp = async (req, res) => {
 
         })
         if (!token) {
-            return res.status(400).json({ Error: "Can't generate token for you!" })
-        } else {
-            // send token in mail
-            const transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: process.env.EMAIL_USER,  //  email address 
-                    pass: process.env.EMAIL_PASS   //  email password
+            return res.status(400).json({ error: "Can't generate token for you!" })
+        }
+        // send token in mail
 
-                }
-            });
+        const verificationUrl = `http://localhost:5000/verify-email?token=${token}`;
 
-            const sendEmailToUser = async (userEmail, subject, textContent, htmlContent) => {
-                const mailOptions = {
-                    from: process.env.EMAIL_USER,  // Sender email address (use environment variable for security)
-                    to: userEmail,                 // Recipient's email address (user's email)
-                    subject: subject,              // Subject of the email
-                    text: textContent,             // Plain text content
-                    html: htmlContent              // HTML content (optional)
-                };
-
-                try {
-                    const info = await transporter.sendMail(mailOptions);
-                    console.log('Email sent:', info.response);
-                } catch (error) {
-                    console.error('Error sending email:', error);
-                }
-            };
-
-            const sendVerificationEmail = async (userEmail, token) => {
-                const verificationUrl = `http://localhost:5000/verify-email?token=${token}`;
-
-                const textContent = `Hello,\n\nPlease click the following link to verify your email address:\n${verificationUrl}`;
-                const htmlContent = `
+        const textContent = `Hello,\n\nPlease click the following link to verify your email address:\n${verificationUrl}`;
+        const htmlContent = `
                     <p>Hello,</p>
                     <p>Please click the following link to verify your email address:</p>
                     <a href="${verificationUrl}">Verify Email</a>
                 `;
 
-                // Call the sendEmailToUser function to send the email
-                await sendEmailToUser(userEmail, 'Verify Your Email Address', textContent, htmlContent);
-            };
-
-            // Example usage:
-            sendVerificationEmail("rockykushwaha5295@gmail.com", generatedToken);
-
-        }
+        // Call the sendEmailToUser function to send the email
+        sendEmailToUser("noreply@something.com", email, "Verification Email", textContent, htmlContent)
 
 
-
-
-
-
-
-
+        // Example usage:
+        // sendVerificationEmail(userEmail, generatedToken);
         return res.status(200).json({ success: "User registered successfully" });
     } catch (error) {
         console.error("Error during user signup:", error);
-        return res.status(500).json({ Error: "Internal server error" });
+        return res.status(500).json({ error: "Internal server error" });
     }
 };
 
@@ -129,16 +94,16 @@ exports.UserLogin = async (req, res) => {
                     return res.status(200).json({ success: "You are logged in!" })
 
                 } else {
-                    return res.status(400).json({ Error: "password wrong!" })
+                    return res.status(400).json({ error: "password wrong!" })
                 }
             })
         } else {
-            return res.status(400).json({ Error: "Username don't exists!" })
+            return res.status(400).json({ error: "Username don't exists!" })
         }
 
         // return res.status(400).json({ Error: "some error occured" })
 
     } catch (error) {
-        return res.status(200).json({ Error: "Internal server error!" })
+        return res.status(200).json({ error: "Internal server error!" })
     }
 }

@@ -1,5 +1,6 @@
 "use client"
 import React, { useState } from "react";
+import { register } from "../api/UserAPI";
 
 // state variable for the field
 export default function Register() {
@@ -64,22 +65,22 @@ export default function Register() {
     // handle submit
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (validate()) {
-            console.log("form submitted: ", formValue)
-            setformValue({
-                username: "",
-                email: "",
-                password: "",
-                confirmPassword: ""
-            })
-            setAlert("Form submitted successfully!"); // Set alert message
+        // if (validate()) {
+        //     console.log("form submitted: ", formValue)
+        //     setformValue({
+        //         username: "",
+        //         email: "",
+        //         password: "",
+        //         confirmPassword: ""
+        //     })
+        //     setAlert("Form submitted successfully!"); // Set alert message
 
-            // Automatically clear alert after 3 seconds
-            setTimeout(() => {
-                setAlert("");
-            }, 3000);
-        }
-
+        //     // Automatically clear alert after 3 seconds
+        //     setTimeout(() => {
+        //         setAlert("");
+        //     }, 3000);
+        // }
+// register({username, email,})
     }
     return (
         <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
@@ -196,6 +197,7 @@ export default function Register() {
                     <div>
                         <button
                             type="submit"
+                            onClick={handleSubmit}
                             className="flex w-full justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                         >
                             Sign in
