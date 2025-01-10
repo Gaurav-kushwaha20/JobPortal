@@ -3,7 +3,7 @@ const express = require("express")
 require("dotenv").config()
 // connecting to the database
 require('./connections/connection')
-
+const path = require("path")
 // middleware import
 const cors = require('cors')
 const morgan = require('morgan')
@@ -26,8 +26,8 @@ app.use(morgan('dev'))
 // use routes
 app.use(UserRoute)
 
-
-
+// serve static file
+app.use('/profile', express.static(path.join(__dirname, 'public/profile')));
 
 
 
