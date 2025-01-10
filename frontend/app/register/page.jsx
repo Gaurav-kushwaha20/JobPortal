@@ -1,22 +1,35 @@
 "use client"
 import React, { useState } from "react";
 import { register } from "../api/UserAPI";
+import Swal from "sweetalert2";
 
 // state variable for the field
 export default function Register() {
+    // backend url
+    const backend = process.env.NEXT_PUBLIC_BACKEND_SERVER_URL
+
+
     const [alert, setAlert] = useState(""); // State for alert message
     const [formValue, setformValue] = useState({
+        first_name: "",
+        last_name: "",
         username: "",
         email: "",
         password: "",
-        confirmPassword: ""
+        confirmPassword: "",
+        gender: "",
+        date_of_birth: ""
 
     })
     // state variable to show the error message
     const [error, setError] = useState({
+        first_name: "",
+        last_name: "",
         username: "",
         email: "",
-        password: ""
+        password: "",
+        gender: "",
+        date_of_birth: ""
     })
     // handle change function
     const handleChange = (e) => {
@@ -26,7 +39,8 @@ export default function Register() {
             ...formValue,
             [name]: value
         })
-        // check for error
+
+        // reset the error message
         setError({
             ...error,
             [name]: ""
@@ -34,29 +48,59 @@ export default function Register() {
     }
     // validate 
     const validate = () => {
-        const newErrors = { username: "", email: "", password: "" };
+        const newErrors = { first_name: "", last_name: "", username: "", email: "", password: "", gender: "", date_of_birth: "" };
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+        // check for first name
+        if (!formValue.first_name.trim()) {
+            newErrors.first_name = "first name is required";
+        } else if (formValue.last_name < 3) {
+            newErrors.last_name = "First name must be at least 3 characters long";
+        }
+
+        // check for last name
+        if (!formValue.last_name.trim()) {
+            newErrors.last_name = "Last name is required";
+        } else if (formValue.last_name < 3) {
+            newErrors.last_name = "Last name must be at least 3 characters long";
+        }
+
+
+        // check for username
         if (!formValue.username.trim()) {
             newErrors.username = "Username is required";
         } else if (formValue.username.length < 5) {
             newErrors.username = "username must be at least 5 characters long";
         }
+        // check for email
         if (!formValue.email.trim()) {
             newErrors.email = "Email is required.";
         } else if (!emailRegex.test(formValue.email)) {
             newErrors.email = "Enter a valid email address.";
         }
-
+        // check for password
         if (!formValue.password.trim()) {
             newErrors.password = "Password is required.";
         } else if (formValue.password.length < 6) {
             newErrors.password = "Password must be at least 6 characters.";
         }
-
+        // check for confirm password
         if (formValue.password != formValue.confirmPassword) {
             newErrors.password = "Password must be the same"
         }
+        // check gender selection
+        if (!formValue.gender) {
+            newErrors.gender = "Please select one";
+        }
+
+        // check for date of birth
+        if (!formValue.date_of_birth) {
+            newErrors.date_of_birth = "Please select your date of birth";
+        }
+
+
+
+
         setError(newErrors);
         return !Object.values(newErrors).some((error) => error);
 
@@ -65,22 +109,40 @@ export default function Register() {
     // handle submit
     const handleSubmit = (e) => {
         e.preventDefault();
-        // if (validate()) {
-        //     console.log("form submitted: ", formValue)
-        //     setformValue({
-        //         username: "",
-        //         email: "",
-        //         password: "",
-        //         confirmPassword: ""
-        //     })
-        //     setAlert("Form submitted successfully!"); // Set alert message
+        console.log(formValue)
+        validate();
+        if (validate()) {
+            // store the data in the database
+            register(formValue, backend)
+                .then((data) => {
+                    if (data?.error) {
+                        // alert for error msz
+                        Swal.fire({
+                            icon: "error",
+                            title: "Oops...",
+                            text: data.error,
 
-        //     // Automatically clear alert after 3 seconds
-        //     setTimeout(() => {
-        //         setAlert("");
-        //     }, 3000);
-        // }
-// register({username, email,})
+                        });
+
+                    } else if (data?.success) {
+                        // success alert here
+                        Swal.fire({
+                            position: "top-end",
+                            icon: "success",
+                            title: data.success,
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    }
+
+
+                })
+                .catch(error => {
+
+                })
+        }
+
+
     }
     return (
         <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
@@ -91,7 +153,7 @@ export default function Register() {
             <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                 <img
                     className="mx-auto h-10 w-auto"
-                    src="/logo.png"
+                    src="/logo.jpg"
                     alt="Your Company"
                 />
                 <h2 className="mt-10 text-center text-2xl font-bold tracking-tight text-gray-900">
@@ -101,6 +163,55 @@ export default function Register() {
 
             <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
                 <form className="space-y-6" action="#" onSubmit={handleSubmit} method="POST">
+                    {/* first name */}
+                    <div>
+                        <label
+                            htmlFor="first_name"
+                            className="block text-sm font-medium text-gray-900"
+                        >
+                            First Name:
+                        </label>
+                        <div className="mt-2">
+                            <input
+                                id="first_name"
+                                name="first_name"
+                                type="text"
+                                value={formValue.first_name}
+                                onChange={handleChange}
+                                autoComplete="first_name"
+
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm pl-1"
+                            />
+                        </div>
+                        {error.first_name && <p className="text-red-500 text-sm">{error.first_name}</p>}
+                    </div>
+
+                    {/* last name */}
+                    <div>
+                        <label
+                            htmlFor="last_name"
+                            className="block text-sm font-medium text-gray-900"
+                        >
+                            last_name
+                        </label>
+                        <div className="mt-2">
+                            <input
+                                id="last_name"
+                                name="last_name"
+                                type="text"
+                                value={formValue.last_name}
+                                onChange={handleChange}
+                                autoComplete="last_name"
+
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm pl-1"
+                            />
+                        </div>
+                        {error.last_name && <p className="text-red-500 text-sm">{error.last_name}</p>}
+
+                    </div>
+
+
+                    {/* username */}
                     <div>
                         <label
                             htmlFor="username"
@@ -194,6 +305,58 @@ export default function Register() {
 
                     </div>
 
+
+                    {/* gender */}
+                    <div>
+                        <div className="flex items-center justify-between">
+                            <label
+                                htmlFor="gender"
+                                className="block text-sm font-medium text-gray-900"
+                            >
+                                Gender
+                            </label>
+                        </div>
+                        <div className="mt-2">
+                            <select
+                                id="gender"
+                                name="gender"
+                                value={formValue.gender}
+                                onChange={handleChange}
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm pl-1"
+                            >
+                                <option value="">Select Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                        {error.gender && <p className="text-red-500 text-sm">{error.gender}</p>}
+                    </div>
+
+                    {/* DATE OF BIRTH */}
+                    <div>
+                        <div className="flex items-center justify-between">
+                            <label
+                                htmlFor="date_of_birth"
+                                className="block text-sm font-medium text-gray-900"
+                            >
+                                Date of Birth
+                            </label>
+                        </div>
+                        <div className="mt-2">
+                            <input
+                                id="date_of_birth"
+                                name="date_of_birth"
+                                type="date"
+                                value={formValue.date_of_birth}
+                                onChange={handleChange}
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm pl-1"
+                            />
+                        </div>
+                        {error.date_of_birth && <p className="text-red-500 text-sm">{error.date_of_birth}</p>}
+                    </div>
+
+
+
                     <div>
                         <button
                             type="submit"
@@ -208,7 +371,7 @@ export default function Register() {
                 <p className="mt-10 text-center text-base text-gray-500 ">
                     <span>Already a member </span>
                     <a
-                        href="/user/login"
+                        href="/login"
                         className="font-semibold text-blue-600 hover:text-blue-500 transition-all duration-500 ease-in-out transform hover:scale-110 hover:text-xl"
                     >
                         Login

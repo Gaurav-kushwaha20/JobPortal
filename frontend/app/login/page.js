@@ -1,14 +1,23 @@
 "use client"
 import React, { useState } from "react";
+import { login } from "../api/UserAPI";
+import {useRouter} from "next/navigation";
+const Swal = require('sweetalert2')
+
+// environment variable
+const backend = process.env.NEXT_PUBLIC_BACKEND_SERVER_URL
 
 export default function SignIn() {
+    const router = useRouter()
     const [formValue, setformValue] = useState({
-        email: "",
+        username: "",
         password: ""
     })
+
     const [error, setError] = useState(null)
     const [success, setSuccess] = useState(null)
     const [alert, setAlert] = useState(false)
+
     // handle change
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -27,17 +36,17 @@ export default function SignIn() {
         console.log(formValue.email)
         console.log(formValue.password)
 
-        // if (!formValue.email.toString().trim()) {
-        //   newErrors.email = "Email is required.";
-        // } else if (!emailRegex.test(formValue.email)) {
-        //   newErrors.email = "Enter a valid email address.";
-        // }
+        if (!formValue.email.toString().trim()) {
+            newErrors.email = "Email is required.";
+        } else if (!emailRegex.test(formValue.email)) {
+            newErrors.email = "Enter a valid email address.";
+        }
 
-        // if (!formValue.password.toString().trim()) {
-        //   newErrors.password = "Password is required.";
-        // } else if (formValue.password.length < 6) {
-        //   newErrors.password = "Password must be at least 6 characters.";
-        // }
+        if (!formValue.password.toString().trim()) {
+            newErrors.password = "Password is required.";
+        } else if (formValue.password.length < 6) {
+            newErrors.password = "Password must be at least 6 characters.";
+        }
 
         setError(newErrors);
         return !Object.values(newErrors).some((error) => error);
@@ -45,13 +54,54 @@ export default function SignIn() {
     // handle submit
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (validate()) {
-            console.log("form submitted: ", formValue)
-            setformValue({
-                email: "",
-                password: "",
+        if (true) {
+            // send the information to the backend
 
-            })
+            login(formValue, backend)
+                .then(data => {
+                    if (data?.error) {
+                        // sweet alert if any error from the backend server
+                        Swal.fire({
+                            icon: "error",
+                            title: "Oops...",
+                            text: data.error,
+
+                        });
+
+                    } else if (data?.success) {
+                        // success alert
+                        Swal.fire({
+                            position: "top-end",
+                            icon: "success",
+                            title: data.success,
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                        // save the token to local storage
+                        localStorage.setItem('c_user', data.token)        // set the item to localstorage
+                        setformValue({
+                            username: "",
+                            password: "",
+
+                        })
+                        router.push('/profile')
+                    } else {
+                        // alert for something else error
+                        Swal.fire({
+                            icon: "error",
+                            title: "Oops...",
+                            text: "Some error occured, please try again later",
+
+                        });
+                    }
+                })
+
+
+
+
+
+            // 
+
             setAlert("Form submitted successfully!"); // Set alert message
 
             // Automatically clear alert after 3 seconds
@@ -66,7 +116,7 @@ export default function SignIn() {
             <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                 <img
                     className="mx-auto h-10 w-auto"
-                    src="/logo.png"
+                    src="/logo.jpg"
                     alt="Your Company"
                 />
                 <h2 className="mt-10 text-center text-2xl font-bold tracking-tight text-gray-900">
@@ -81,14 +131,14 @@ export default function SignIn() {
                             htmlFor="email"
                             className="block text-sm font-medium text-gray-900"
                         >
-                            Email address
+                            Username
                         </label>
                         <div className="mt-2">
                             <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                value={formValue.email}
+                                id="username"
+                                name="username"
+                                type="text"
+                                value={formValue.username}
                                 onChange={handleChange}
                                 // autoComplete="email"
                                 required
@@ -107,7 +157,7 @@ export default function SignIn() {
                             </label>
                             <div className="text-sm">
                                 <a
-                                    href="#"
+                                    href="/user/forgot-password"
                                     className="font-semibold text-blue-600 hover:text-blue-500"
                                 >
                                     Forgot password?
