@@ -27,7 +27,13 @@ app.use(morgan('dev'))
 app.use(UserRoute)
 
 // serve static file
-app.use('/profile', express.static(path.join(__dirname, 'public/profile')));
+app.use('/profile', express.static(path.join(__dirname, 'public/profile'), {
+    setHeaders: (res, path) => {
+        res.setHeader('Access-Control-Allow-Origin',  process.env.FRONTEND_DOMAIN);
+        res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        }
+}));
 
 
 

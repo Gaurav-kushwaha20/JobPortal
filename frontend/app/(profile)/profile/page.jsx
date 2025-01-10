@@ -5,6 +5,7 @@ import {getProfile} from "../../api/UserAPI";
 import Overview from "./overview";
 import Posts from "./posts";
 import Setting from "./setting";
+import Resume from "./resume";
 
 
 const backend = process.env.NEXT_PUBLIC_BACKEND_SERVER_URL
@@ -72,7 +73,7 @@ function Page(props) {
                         {/* Navigation Tabs */}
                         <div className="flex border-b border-gray-200">
                             {
-                                ['overview', 'posts', 'setting'].map(tab => {
+                                ['overview', 'posts', 'setting', 'resume'].map(tab => {
                                     return (
                                         <button key={tab} onClick={() => {
                                             setActiveTab(tab)
@@ -90,6 +91,7 @@ function Page(props) {
                         {activeTab === 'overview' && <Overview/>}
                         {activeTab === 'posts' && <Posts/>}
                         {activeTab === 'setting' && <Setting/>}
+                        {activeTab === 'resume' && <Resume/>}
 
 
                     </div>

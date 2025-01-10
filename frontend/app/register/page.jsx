@@ -2,12 +2,13 @@
 import React, { useState } from "react";
 import { register } from "../api/UserAPI";
 import Swal from "sweetalert2";
+import {useRouter} from "next/navigation";
 
 // state variable for the field
 export default function Register() {
     // backend url
     const backend = process.env.NEXT_PUBLIC_BACKEND_SERVER_URL
-
+    const router = useRouter();
 
     const [alert, setAlert] = useState(""); // State for alert message
     const [formValue, setformValue] = useState({
@@ -133,6 +134,8 @@ export default function Register() {
                             showConfirmButton: false,
                             timer: 1500
                         });
+                        router.push("/login");
+                        
                     }
 
 
@@ -381,4 +384,3 @@ export default function Register() {
         </div>
     );
 }
-
