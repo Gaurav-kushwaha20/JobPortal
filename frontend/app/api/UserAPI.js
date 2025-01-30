@@ -112,14 +112,40 @@ export const loggedInUser = () => {
 }
 
 // get profile information
-export const getProfile = (token,backend_url) => {
+export const getProfile = (token, backend_url) => {
     return fetch(`${backend_url}/get-profile`, {
-        method: "post",
+        method: "GET",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Authorization": `bearer ${token}`
         },
-        body: JSON.stringify({token})
+        
     }).then(response => response.json())
-    .catch(error => {console.log(error)})
+        .catch(error => { console.log(error) })
 }
 
+// get the user role 
+export const getUserRole = (token, backend_url) => {
+    return fetch(`${backend_url}/get-user-role`, {
+        method: "GET",
+        headers: {
+            Authorization: `bearer ${token}`
+        }
+    })
+    .then(response =>  response.json())
+    .catch(error => console.log(error))
+}
+
+export const uploadProfile = (token, formdata, backend_url) => {
+    console.log(formdata)
+    return fetch(`${backend_url}/change-profile-picture`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${token}`, // Ensure 'Bearer' is capitalized
+
+        },
+        body: formdata,
+    })
+    .then(response => response.json())
+    .catch(error => console.log(error));
+};

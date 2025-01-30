@@ -31,7 +31,8 @@ const UserSchema = new mongoose.Schema({
     role: {
         type: Number,
         default: 0
-        // 0 is normal user && 1 is admin.
+        //  0 is job-seeker and 1 is employer
+
     },
     verified: {
         type: Boolean,
@@ -54,18 +55,3 @@ const UserSchema = new mongoose.Schema({
 }, { timestamps: true })
 
 module.exports = mongoose.model("User", UserSchema)
-
-/**
- * user signup
-    - first name
-    - last name
-    - username  @unique
-    - email     @unique
-    - password  @a-z, A-Z, 0-9, special character @min 8, @max 21
-    - role by default is user   @user
-    - verified      - by false
-    - dob
-    - gender
-    - created_at
-    - updated_at
- */

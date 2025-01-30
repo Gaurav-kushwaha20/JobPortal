@@ -1,57 +1,54 @@
 import React from 'react';
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import {ResumeSample, Sample1, Sample2} from "./ResumeSample";
+
 
 const Resume = () => {
-
-    // function to download the resume as PDF
     const downloadPDF = async () => {
-        const element = document.getElementById("user-details"); // ID of the element to capture
-        const canvas = await html2canvas(element, { scale: 2, useCORS: true }); // Increase scale for better quality
+        const element = document.getElementById("user-details"); // Element to capture
+        const canvas = await html2canvas(element, { scale: 2, useCORS: true }); // High resolution for quality
         const imgData = canvas.toDataURL("image/png");
+
         const pdf = new jsPDF("p", "mm", "a4");
+        const pdfWidth = pdf.internal.pageSize.getWidth(); // PDF width
+        const pdfHeight = pdf.internal.pageSize.getHeight(); // PDF height
 
-        // Adjust dimensions
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        // Calculate proportional dimensions
+        const canvasAspectRatio = canvas.width / canvas.height; // Aspect ratio of the captured content
+        // const pdfAspectRatio = pdfHeight  / pdfWidt; // Aspect ratio of the PDF
+        const pdfAspectRatio = 1/ 1.3; // Aspect ratio of the PDF
 
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+        let renderWidth = pdfWidth;
+        let renderHeight = pdfHeight;
+
+        // Maintain aspect ratio based on width
+        renderHeight = renderWidth / pdfAspectRatio;
+        // renderHeight = renderWidth / canvasAspectRatio;
+
+        // Center the image vertically
+        const offsetY = (pdfHeight - renderHeight) / 2;
+
+        pdf.addImage(imgData, "PNG", 0, offsetY, renderWidth, renderHeight);
         pdf.save("user-details.pdf");
     };
-
+    
     // main function return statement
     return (
-        <div className={'mx-10'}>
+        <div className={''}>
             <div id="user-details">
-                <div className="min-h-screen bg-gray-100 py-8">
-                    <div className="max-w-7xl mx-auto bg-white shadow-md rounded-lg overflow-hidden">
-                        {/* User Details Content */}
-                        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6">
-                            <div className="flex items-center space-x-4">
-                                <img
-                                    // src={'/pp.jpg'}
-                                    src="http://localhost:5000/profile/default.png"
-                                    alt="Profile"
-                                    className="w-24 h-24 rounded-full border-4 border-white "
-                                    onLoad={() => console.log('Image loaded!')} // Ensure image is loaded
-                                />
-                                <div className="text-white">
-                                    <h1 className="text-2xl font-bold">
-                                        <span>{'Gaurav'}</span>
-                                        <span> {'Kushwaha'}</span>
-                                    </h1>
-                                    <p className="text-sm opacity-80">{'rockymoderator@gmail.com'}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+               {/*<ResumeSample />*/}
+                <Sample1 />
+                {/* <Sample2 /> */}
+             
+            
             </div>
             {/* Download button */}
-            <div>
+            <div className={' bottom-0'}>
                 <button
                     className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                     onClick={downloadPDF}
+                    
                 >
                     Download as PDF
                 </button>

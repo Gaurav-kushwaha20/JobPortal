@@ -1,16 +1,15 @@
-"use client"
-import React, { useState } from "react";
-import { register } from "../api/UserAPI";
-import Swal from "sweetalert2";
-import {useRouter} from "next/navigation";
+'use client'
+import React, { useState } from 'react';
+import { useRouter } from "next/navigation";
+import { registerEmployer } from '../../api/EmployerAPI'
+import Swal from 'sweetalert2';
 
-// state variable for the field
-export default function Register() {
-    // backend url
+
+const Page = () => {
     const backend = process.env.NEXT_PUBLIC_BACKEND_SERVER_URL
     const router = useRouter();
-
     const [alert, setAlert] = useState(""); // State for alert message
+
     const [formValue, setformValue] = useState({
         first_name: "",
         last_name: "",
@@ -19,8 +18,8 @@ export default function Register() {
         password: "",
         confirmPassword: "",
         gender: "",
-        date_of_birth: ""
-
+        date_of_birth: "",
+        company_name: ""
     })
     // state variable to show the error message
     const [error, setError] = useState({
@@ -47,6 +46,7 @@ export default function Register() {
             [name]: ""
         })
     }
+
     // validate 
     const validate = () => {
         const newErrors = { first_name: "", last_name: "", username: "", email: "", password: "", gender: "", date_of_birth: "" };
@@ -107,58 +107,43 @@ export default function Register() {
 
     }
 
-    // handle submit
     const handleSubmit = (e) => {
+        // console.log(formValue)
         e.preventDefault();
-        console.log(formValue)
-        validate();
-        if (validate()) {
-            // store the data in the database
-            register(formValue, backend)
-                .then((data) => {
-                    if (data?.error) {
-                        // alert for error msz
-                        Swal.fire({
-                            icon: "error",
-                            title: "Oops...",
-                            text: data.error,
+        registerEmployer(formValue, backend)
+            .then(res => {
+                if (res.token) {
+                    Swal.fire({
+                        position: "top-end",
+                        icon: "success",
+                        title: res.success,
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                    localStorage.setItem("employer", res.token)
+                    router.push('/employer-login')
+                } else if (res.error) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: res.error,
 
-                        });
-
-                    } else if (data?.success) {
-                        // success alert here
-                        Swal.fire({
-                            position: "top-end",
-                            icon: "success",
-                            title: data.success,
-                            showConfirmButton: false,
-                            timer: 1500
-                        });
-                        router.push("/login");
-                        
-                    }
-
-
-                })
-                .catch(error => {
-
-                })
-        }
-
+                    });
+                }
+            })
+            .catch(err => console.log(err))
 
     }
+
     return (
         <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
             {alert && (
                 <div className="fixed top-12 left-1/2 transform -translate-x-1/2 bg-green-400 text-white px-10 py-2 text-2xl font-semibold  rounded-lg shadow-md">
                     {alert}
                 </div>)}
-            <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-                <img
-                    className="mx-auto h-10 w-auto"
-                    src="/logo.jpg"
-                    alt="Your Company"
-                />
+            <div className="sm:mx-auto sm:w-full sm:max-w-sm  ">
+                {/*<img src="/logo-light.svg" className={'mx-auto mt-2'} alt=""/>*/}
+
                 <h2 className="mt-10 text-center text-2xl font-bold tracking-tight text-gray-900">
                     Register Your Account
                 </h2>
@@ -358,6 +343,28 @@ export default function Register() {
                         {error.date_of_birth && <p className="text-red-500 text-sm">{error.date_of_birth}</p>}
                     </div>
 
+                    <div>
+                        <label
+                            htmlFor="company"
+                            className="block text-sm font-medium text-gray-900"
+                        >
+                            Company Name
+                        </label>
+                        <div className="mt-2">
+                            <input
+                                id="company"
+                                name="company_name"
+                                type="text"
+                                autoComplete="company"
+                                value={formValue.company_name}
+                                onChange={handleChange}
+
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm pl-1"
+                            />
+                        </div>
+                        {error.email && <p className="text-red-500 text-sm">{error.email}</p>}
+                    </div>
+
 
 
                     <div>
@@ -382,5 +389,8 @@ export default function Register() {
                 </p>
             </div>
         </div>
+
     );
-}
+};
+
+export default Page;

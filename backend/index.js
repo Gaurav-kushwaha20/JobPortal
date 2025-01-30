@@ -10,8 +10,8 @@ const morgan = require('morgan')
 
 // routes import
 const UserRoute = require('./routes/UserRoutes')
-
-
+const EmployerRoute = require('./routes/EmployerRoutes')
+const vacancyRoute = require('./routes/vancancyRoutes')
 
 
 const app = express()
@@ -25,20 +25,20 @@ app.use(morgan('dev'))
 
 // use routes
 app.use(UserRoute)
+app.use('/vacancy', vacancyRoute)
+// app.use('/employer', EmployerRoute)
+
 
 // serve static file
-app.use('/profile', express.static(path.join(__dirname, 'public/profile'), {
+app.use('/public/profile', express.static(path.join(__dirname, 'public/profile'), {
     setHeaders: (res, path) => {
-        res.setHeader('Access-Control-Allow-Origin',  process.env.FRONTEND_DOMAIN);
+        res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_DOMAIN);
         res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-        }
+    }
 }));
-
-
-
-
-
+// server static file for job vacancy photo
+app.use('/vacancy', express.static(path.join(__dirname, 'public/vacancy')))
 
 
 app.listen(port, () => {

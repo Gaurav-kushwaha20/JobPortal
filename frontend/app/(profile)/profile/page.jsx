@@ -1,19 +1,29 @@
 "use client"
-import React, {useEffect, useState} from 'react';
-import {profileInfo} from "../../api/profileAPI";
-import {getProfile} from "../../api/UserAPI";
+import React, { useEffect, useState, useRef } from 'react';
+import { profileInfo } from "../../api/profileAPI";
+import { getProfile, getUserRole } from "../../api/UserAPI";
 import Overview from "./overview";
 import Posts from "./posts";
 import Setting from "./setting";
 import Resume from "./resume";
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { MdAddAPhoto } from "react-icons/md";
+import { UploadProfileForm } from './UploadProfile'
 
-
+const imageUrl = "http://localhost:5000/";
 const backend = process.env.NEXT_PUBLIC_BACKEND_SERVER_URL
 
 
 function Page(props) {
     const [username, setUsername] = useState('')
     const [userDetails, setUserDetails] = useState()
+    const [role, setRole] = useState(0)
+    const [profileClick, setProfileClick] = useState(false)
+    const [uploadProfilePhoto, setUploadProfilePhoto] = useState(false)
+    const uploadProfilePhotoRef = useRef(null)
+    const changeYourProfileRef = useRef(null)
+    const router = useRouter()
 
     // useState for overview, posts and setting tabs
     const [activeTab, setActiveTab] = useState('overview');
@@ -23,43 +33,78 @@ function Page(props) {
         const token = localStorage.getItem("c_user")
         getProfile(token, backend)
             .then((res) => {
-                setUsername(res.username)
+                if (res.error) {
+                    localStorage.clear('c_user')
+                    router.push('/login')
+                }
+                console.log(res.data)
+                setRole(res.data.role)
+                setUsername(res.data.username)
+                setUserDetails(res.data)
+
             })
             .catch((err) => {
                 console.log(err)
             })
+
+
+
+
     }, [])
 
-    // this will fetch basic profile information after username extracted
+
+    // disable the profile upload form when user click outside of the windows
     useEffect(() => {
-        if (username) {
-            profileInfo(username, backend)
-                .then((res) => {
-                    setUserDetails(res)
-                    console.log(res)
+        const handleClickOutsideForm = (event) => {
+            if (uploadProfilePhotoRef.current && !uploadProfilePhotoRef.current.contains(event.target)) {
+                setUploadProfilePhoto(false)
+            }
 
-                })
-                .catch((err) => {
-                    console.log(err)
-                })
-        }
+            if (changeYourProfileRef.current && !changeYourProfileRef.current.contains(event.target)) {
+                setProfileClick(false)
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutsideForm)
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutsideForm)
+        };
+    }, [])
 
-    }, [username])
+    // handle change profile click,
+    const handleChangeProfileClick = () => {
+        setUploadProfilePhoto(true);
+        setProfileClick(false);
+
+        // make the background div blur and unclickable
+    }
+
+
+
 
     // whole page render only when details fetched
     if (userDetails) {
+        // console.log(imageUrl.concat(userDetails.profile_picture))
         return (
-            <div>
-                <div className="min-h-screen bg-gray-100 py-8">
+            <div className=''>
+                <div className={`min-h-screen bg-gray-100 py-8 ${uploadProfilePhoto ? 'blur-sm pointer-events-none' : ''} `}>
                     <div className="max-w-7xl mx-auto bg-white shadow-md rounded-lg overflow-hidden">
                         {/* Header Section */}
                         <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6">
-                            <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-4 relative ">
                                 <img
-                                    src="http://localhost:5000/profile/default.png"
+                                    onClick={() => { setProfileClick(prev => !prev) }}
+
+                                    src={`${imageUrl.concat(userDetails.profile_picture)}`}
                                     alt="Profile"
-                                    className="w-24 h-24 rounded-full border-4 border-white"
+                                    className="w-24 h-24 rounded-full border-4 border-white cursor-pointer object-cover object-center"
                                 />
+                                {/* profile change components */}
+                                {profileClick &&
+                                    <div ref={changeYourProfileRef} onClick={handleChangeProfileClick} id='change-profile-picture' className='absolute left-20 -bottom-8 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-900 hover:to-purple-800 px-6 py-3 rounded-lg'>
+                                        <div className='flex gap-3 text-white cursor-pointer'> <span><MdAddAPhoto /></span> <span>Change your profile</span> </div>
+                                    </div>}
+
+
                                 <div className="text-white">
                                     <h1 className="text-2xl font-bold">
                                         <span>{userDetails.first_name.charAt(0).toUpperCase() + userDetails?.first_name.slice(1) + " "}</span>
@@ -73,12 +118,28 @@ function Page(props) {
                         {/* Navigation Tabs */}
                         <div className="flex border-b border-gray-200">
                             {
-                                ['overview', 'posts', 'setting', 'resume'].map(tab => {
+                                //  for the employer
+                                role == 1 && ['overview', 'posts', 'setting',].map(tab => {
                                     return (
                                         <button key={tab} onClick={() => {
                                             setActiveTab(tab)
                                         }}
-                                                className="flex-1 py-3 text-center font-medium text-gray-700 hover:bg-gray-100"
+                                            className="flex-1 py-3 text-center font-medium text-gray-700 hover:bg-gray-100"
+                                        >
+                                            {tab}
+                                        </button>
+                                    )
+                                })
+                            }
+
+                            {
+                                // only for the job seeker
+                                role == 0 && ['overview', 'setting', 'resume'].map(tab => {
+                                    return (
+                                        <button key={tab} onClick={() => {
+                                            setActiveTab(tab)
+                                        }}
+                                            className="flex-1 py-3 text-center font-medium text-gray-700 hover:bg-gray-100"
                                         >
                                             {tab}
                                         </button>
@@ -88,15 +149,25 @@ function Page(props) {
 
                         </div>
 
-                        {activeTab === 'overview' && <Overview/>}
-                        {activeTab === 'posts' && <Posts/>}
-                        {activeTab === 'setting' && <Setting/>}
-                        {activeTab === 'resume' && <Resume/>}
+                        {activeTab === 'overview' && <Overview username={username} />}
+                        {activeTab === 'posts' && <Posts username={username} />}
+                        {activeTab === 'setting' && <Setting username={username} />}
+                        {activeTab === 'resume' && <Resume username={username} />}
 
 
                     </div>
 
                 </div>
+
+                {/* upload the profile video */}
+
+                {uploadProfilePhoto && <div ref={uploadProfilePhotoRef} className='absolute top-[40%] left-[40%]'>
+                    <UploadProfileForm />
+                </div>}
+
+
+
+
             </div>
         )
     } else {
@@ -105,8 +176,8 @@ function Page(props) {
                 <div className="relative">
                     <div className="w-16 h-16 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
                     <span className="absolute inset-0 flex items-center justify-center font-semibold text-blue-500">
-                    Loading...
-                </span>
+                        Loading...
+                    </span>
                 </div>
             </div>
         )

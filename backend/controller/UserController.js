@@ -2,11 +2,12 @@ const Token = require('../models/TokenModel');
 const User = require('../models/UserModel');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto')
-const nodemailer = require('nodemailer');
 const sendEmailToUser = require('../middleware/emailSender');
 const jwt = require('jsonwebtoken');
-const {json} = require('express');
 const {expressjwt} = require('express-jwt');
+const domain = require("node:domain");
+const fs = require('fs');
+const path = require('path');
 
 
 // user signup
@@ -176,7 +177,10 @@ exports.UserLogin = async (req, res) => {
                     } else {
                         // save user details to the local storage
                         let {_id, username, role} = user
-                        const token = jwt.sign({_id, role, username}, process.env.SECREAT_KEY, {expiresIn: '1h'})
+                        const token = jwt.sign({_id, role, username}, process.env.SECREAT_KEY, {
+                            expiresIn: '1h',
+                            algorithm: 'HS256'
+                        })
                         res.cookie('user', token, {expire: Date.now() + 86400})
                         res.json({token, success: "logged in success!"})
                     }
@@ -541,35 +545,92 @@ exports.deleteToken = async (req, res) => {
 
 // get profile information
 exports.getProfile = async (req, res) => {
+    const token = req.headers['authorization']?.split(' ')[1];
 
-    const {token} = req.body
-    console.log(token)
 
-    if(!token){
+    if (!token) {
         return res.status(400).json({error: "Token not found!"})
     }
 
     try {
-       const decoded =  jwt.verify(token, process.env.SECREAT_KEY)
-        return res.status(200).json({username: decoded.username })
-        console.log(decoded)
-    }catch(err){
-        return res.status(400).json({error: "Invalid token"})
+        const decoded = jwt.verify(token, process.env.SECREAT_KEY);
+        const user = await User.findById(decoded._id, 'email username first_name last_name email gender profile_picture role')
+        if (!user) {
+            return res.status(400).json({error: "User not found!", redirect: true})
+        }
+
+
+        return res.status(200).json({data: user})
+
+    } catch (e) {
+        return res.status(400).json({error: "Failed to decode the token!"})
     }
-    res.status(200).json({success: token})
-}
-
-// get profile info
-exports.profileInfo = async (req, res) => {
-    const authHeader = req.headers['authorization'];
-    const username = authHeader.split(' ')[1]
-    
-    // fetch the data from the database for basic user details
-    const userDetails = await User.findOne({username: username}, 'email first_name last_name email gender profile_picture')
-
-    return res.status(200).json(userDetails)
 }
 
 
-// details: education, experience, language, reference, tranning, skillset,
-// export as pdf
+// is allow to post or not
+exports.isEmployer = async (req, res, next) => {
+    try {
+        const token = req.headers['authorization']?.split(' ')[1];
+        if (!token) {
+            return res.status(400).json({error: "Access denied. No token provided."})
+        }
+        console.log(token)
+        const decoded = await jwt.verify(token, process.env.SECREAT_KEY)
+        req.user = decoded;
+
+        const user = await User.findById(decoded._id)
+        if (!user) {
+            return res.status(400).json({error: "No user found."})
+        }
+        console.log(typeof user.role)
+        if (user.role === 0) {
+            return res.status(401).json({error: "You don't have permission to perform this action."})
+        }
+        console.log("I am here")
+        next()
+    } catch (e) {
+        console.log(e)
+        return res.status(400).json({error: e.message})
+    }
+}
+
+
+// upload the user profile picture
+exports.uploadProfilePicture = async (req, res) => {
+    const backend = process.env.DOMAIN;
+    let token = req.headers['authorization']?.split(' ')[1];
+
+
+    if (!token) {
+        return res.status(400).json({error: "Access denied. No token provided."})
+    }
+    try {
+        const decoded = jwt.verify(token, process.env.SECREAT_KEY)
+        const id = decoded._id;
+        let profile = req.file.path
+        profile = profile.replace('public', backend)
+
+        let {profile_picture} = await User.findById(id)
+            .select('profile_picture')
+        console.log(profile_picture)
+        fs.unlink(profile_picture, (err) => {
+            if (err) {
+                return res.status(400).json({error: "Failed to delete profile picture"})
+             
+            }
+        })
+
+
+        const user = await User.findByIdAndUpdate(id, {profile_picture: req.file.path}, {new: true})
+        if (!user) {
+            return res.status(400).json({error: "No user found."})
+        }
+
+        return res.status(200).json({success: true, data: user})
+    } catch (err) {
+        return res.status(400).json({error: err.message})
+    }
+
+
+}

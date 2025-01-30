@@ -1,34 +1,20 @@
-"use client"
-import React, { useState } from "react";
-import { login } from "../api/UserAPI";
-import {useRouter} from "next/navigation";
-const Swal = require('sweetalert2')
+'use client'
+import React, { useState } from 'react';
+import Link from "next/link";
+import { loginEmployer } from '../../api/EmployerAPI';
+import Swal from 'sweetalert2';
+import { useRouter } from 'next/navigation';
 
 // environment variable
 const backend = process.env.NEXT_PUBLIC_BACKEND_SERVER_URL
 
-export default function SignIn() {
+const Page = () => {
     const router = useRouter()
     const [formValue, setformValue] = useState({
         username: "",
         password: ""
     })
 
-    const [error, setError] = useState(null)
-    const [success, setSuccess] = useState(null)
-    const [alert, setAlert] = useState(false)
-
-    // handle change
-    const handleChange = (e) => {
-        const { name, value } = e.target
-        setformValue({
-            ...formValue,
-            [name]: value
-        })
-
-
-
-    }
     // validate 
     const validate = () => {
         const newErrors = { email: "", password: "" };
@@ -51,76 +37,53 @@ export default function SignIn() {
         setError(newErrors);
         return !Object.values(newErrors).some((error) => error);
     }
-    // handle submit
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (true) {
-            // send the information to the backend
 
-            login(formValue, backend)
-                .then(data => {
-                    if (data?.error) {
-                        // sweet alert if any error from the backend server
-                        Swal.fire({
-                            icon: "error",
-                            title: "Oops...",
-                            text: data.error,
+    // handle change
+    const handleChange = (e) => {
+        const { name, value } = e.target
+        setformValue({
+            ...formValue,
+            [name]: value
+        })
+    }
+    // form submit
+    const handleSubmit = e => {
+        e.preventDefault()
+        console.log(formValue)
+        loginEmployer(formValue, backend)
+            .then(res => {
+                if (res.token) {
+                    Swal.fire({
+                        position: "top-end",
+                        icon: "success",
+                        title: res.success,
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(()=>{
+                        localStorage.setItem("employer", res.token)
+                        router.push('/employer-profile')
+                    })
+                } else if (res.error) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: res.error,
 
-                        });
-
-                    } else if (data?.success) {
-                        // success alert
-                        Swal.fire({
-                            position: "top-end",
-                            icon: "success",
-                            title: data.success,
-                            showConfirmButton: false,
-                            timer: 1500
-                        });
-                        // save the token to local storage
-                        localStorage.setItem('c_user', data.token)        // set the item to localstorage
-                        setformValue({
-                            username: "",
-                            password: "",
-
-                        })
-                        router.push('/profile')
-                    } else {
-                        // alert for something else error
-                        Swal.fire({
-                            icon: "error",
-                            title: "Oops...",
-                            text: "Some error occured, please try again later",
-
-                        });
-                    }
-                })
-
-
-
-
-
-            // 
-
-            setAlert("Form submitted successfully!"); // Set alert message
-
-            // Automatically clear alert after 3 seconds
-            setTimeout(() => {
-                setAlert("");
-            }, 3000);
-        }
-
+                    });
+                }
+            })
+            .catch(err => console.log(err))
     }
     return (
         <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-                <img
-                    className="mx-auto h-10 w-auto"
-                    src="/logo.jpg"
-                    alt="Your Company"
-                />
+                {/*<img*/}
+                {/*    className="mx-auto h-10 w-auto"*/}
+                {/*    src="/logo.jpg"*/}
+                {/*    alt="Your Company"*/}
+                {/*/>*/}
                 <h2 className="mt-10 text-center text-2xl font-bold tracking-tight text-gray-900">
-                    Sign in to your account
+                    Login to your account
                 </h2>
             </div>
 
@@ -140,7 +103,7 @@ export default function SignIn() {
                                 type="text"
                                 value={formValue.username}
                                 onChange={handleChange}
-                                // autoComplete="email"
+                                autoComplete="username"
                                 required
                                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm pl-1"
                             />
@@ -156,12 +119,12 @@ export default function SignIn() {
                                 Password
                             </label>
                             <div className="text-sm">
-                                <a
+                                <Link
                                     href="/user/forgot-password"
                                     className="font-semibold text-blue-600 hover:text-blue-500"
                                 >
                                     Forgot password?
-                                </a>
+                                </Link>
                             </div>
                         </div>
                         <div className="mt-2">
@@ -171,7 +134,7 @@ export default function SignIn() {
                                 type="password"
                                 value={formValue.password}
                                 onChange={handleChange}
-                                // autoComplete="current-password"
+                                autoComplete="current-password"
                                 required
                                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm pl-1"
                             />
@@ -190,14 +153,16 @@ export default function SignIn() {
 
                 <p className="mt-10 text-center text-base text-gray-500 ">
                     <span>Not a member </span>
-                    <a
-                        href="/user/register"
+                    <Link
+                        href="/register"
                         className="font-semibold text-blue-600 hover:text-blue-500 transition-all duration-500 ease-in-out transform hover:scale-110 hover:text-xl"
                     >
                         register now
-                    </a>
+                    </Link>
                 </p>
             </div>
         </div>
     );
-}
+};
+
+export default Page;
