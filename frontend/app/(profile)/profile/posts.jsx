@@ -8,25 +8,45 @@ import Swal from "sweetalert2";
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_SERVER_URL;
 
 const ManageJobPosts = ({username}) => {
+    const [formValues, setFormValues] = useState({
+        title: "",
+        description: "",
+        skillsRequired: "",
+        salaryRange: "",
+        location: "",
+        type: "",
+        company: "",
+        photo: null
+    })
+
+    //  handle change of the form value
+    const handleChangeFormValues = e => {
+        const {name, value, files, type} = e.target;
+        
+        if (name === "photo") {
+            setPreview(URL.createObjectURL(files[0]));
+        }
+
+        setFormValues((previousValues) => (
+            {...previousValues, [name]: type === "file" ? files[0] : value}
+
+
+        ))
+    };
+
+
     // state variable to implement the pagination previous and next state
     const [page, setPage] = useState(1)
-    const [limit, setLimit] = useState(5)
+    const [limit, setLimit] = useState(2)
     const [hasMore, setHasMore] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [vacancies, setVacancies] = useState([]);
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [skillsRequired, setSkillsRequired] = useState("");
-    const [salaryRange, setSalaryRange] = useState("");
-    const [location, setLocation] = useState("");
-    const [jobType, setJobType] = useState("");
-    const [company, setCompany] = useState("");
     const [message, setMessage] = useState("");
+    const [preview, setPreview] = useState(null)
     const router = useRouter();
 
     // initial fetch of the vacancies
     useEffect(() => {
-        console.log("Use effect")
         getUserVacancies(username, backendUrl, page, limit)
             .then((response) => {
                 if (response.data.length < 1) {
@@ -34,7 +54,7 @@ const ManageJobPosts = ({username}) => {
                 }
 
                 setVacancies(response.data);
-                console.log(response.data);
+                // console.log(response.data);
                 setPage((prev) => prev + 1); // Increment the page number for the next fetch
             })
             .catch((error) => {
@@ -67,32 +87,27 @@ const ManageJobPosts = ({username}) => {
         }
     };
 
-    
-    
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         const token = localStorage.getItem("c_user");
-        const postData = {
-            title,
-            description,
-            company,
-            jobType,
-            skillsRequired: skillsRequired.split(",").map((skill) => skill.trim()),
-            salaryRange,
-            location,
-        };
+        const formData = new FormData();
+         for(const key in formValues){
+             if(key !== "photo" && formValues[key]){
+                 formData.append(key, formValues[key]);
+             }
+         }
+        if (formValues.photo) {
+            formData.append("photo", formValues.photo)
+        }
+        
 
-        postVacancy(postData, token, backendUrl)
+        postVacancy(formData, token, backendUrl)
             .then((res) => {
                 if (res?.success) {
                     setMessage(`🎉 ${res.success}`);
                     setShowForm(false);
-                    setTitle("");
-                    setDescription("");
-                    setSkillsRequired("");
-                    setSalaryRange("");
-                    setLocation("");
+                   
 
                     // Fetch updated vacancies
                     getUserVacancies(username, backendUrl)
@@ -142,6 +157,9 @@ const ManageJobPosts = ({username}) => {
             }
         });
     }
+
+    // handle change the upload photo
+
 
     const formatDate = (timestamp) => {
         const date = new Date(timestamp);
@@ -193,8 +211,10 @@ const ManageJobPosts = ({username}) => {
                         </label>
                         <input
                             type="text"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
+                            name={"title"}
+                            value={formValues.title}
+                            onChange={(e) => handleChangeFormValues(e)}
+
                             className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Enter job title"
                             required
@@ -206,8 +226,9 @@ const ManageJobPosts = ({username}) => {
                             Job Description:
                         </label>
                         <textarea
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
+                            name={"description"}
+                            value={formValues.description}
+                            onChange={(e) => handleChangeFormValues(e)}
                             className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Enter job description"
                             rows="4"
@@ -220,8 +241,10 @@ const ManageJobPosts = ({username}) => {
                             Job Type:
                         </label>
                         <select
-                            value={jobType}
-                            onChange={(e) => setJobType(e.target.value)}
+                            name={'type'}
+                            value={formValues.type}
+                            onChange={(e) => handleChangeFormValues(e)}
+
                             className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required
                         >
@@ -236,9 +259,11 @@ const ManageJobPosts = ({username}) => {
                             Skills Required (comma-separated):
                         </label>
                         <input
+                            name={"skillsRequired"}
                             type="text"
-                            value={skillsRequired}
-                            onChange={(e) => setSkillsRequired(e.target.value)}
+                            value={formValues.skillsRequired}
+                            onChange={(e) => handleChangeFormValues(e)}
+
                             className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="e.g., React.js, Node.js, MongoDB"
                             required
@@ -251,8 +276,10 @@ const ManageJobPosts = ({username}) => {
                         </label>
                         <input
                             type="text"
-                            value={salaryRange}
-                            onChange={(e) => setSalaryRange(e.target.value)}
+                            name={"salaryRange"}
+                            value={formValues.salaryRange}
+                            onChange={(e) => handleChangeFormValues(e)}
+
                             className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="e.g., 50,000-70,000"
                             required
@@ -265,8 +292,10 @@ const ManageJobPosts = ({username}) => {
                         </label>
                         <input
                             type="text"
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
+                            name={"location"}
+                            value={formValues.location}
+                            onChange={(e) => handleChangeFormValues(e)}
+
                             className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="e.g., Kathmandu, Nepal"
                             required
@@ -279,37 +308,37 @@ const ManageJobPosts = ({username}) => {
                         </label>
                         <input
                             type="text"
-                            value={company}
-                            onChange={(e) => setCompany(e.target.value)}
+                            name={"company"}
+                            value={formValues.company}
+                            onChange={(e) => handleChangeFormValues(e)}
                             className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Enter company name"
                             required
                         />
                     </div>
-                    
-                    {/*<div className="mb-4">*/}
-                    {/*    <label className="block text-gray-700 font-medium mb-2">*/}
-                    {/*        Upload Photo*/}
-                    {/*    </label>*/}
-                    {/*    {preview && <img className="mx-auto" src={preview} alt="Preview" style={{width: '300px'}}/>}*/}
-                    {/*    <input*/}
-                    {/*        type="file"*/}
-                    {/*        accept="image/*"*/}
-                    {/*        onChange={handlePhotoChange}*/}
-                    {/*        className="hidden"*/}
-                    {/*        id="fileInput"*/}
-                    {/*    />*/}
-                    
-                    {/*    <label*/}
-                    {/*        htmlFor="fileInput"*/}
-                    {/*        className="flex items-center justify-center py-4  text-white rounded-full cursor-pointer "*/}
-                    {/*    >*/}
-                    {/*        <p className="text-2xl  p-4 w-16 text-center rounded-full bg-blue-500 hover:bg-blue-600 transition duration-300">+</p>*/}
-                    {/*    </label>*/}
-                    
-                    {/*</div>*/}
 
+                    <div className="mb-4">
+                        <label className="block text-gray-700 font-medium mb-2">
+                            Upload Photo
+                        </label>
+                        {preview && <img className="mx-auto" src={preview} alt="Preview" style={{width: '300px'}}/>}
+                        <input
+                            name={"photo"}
+                            type="file"
+                            accept="image/*"            // only image will apear inside the folder containing image, picture or video 
+                            onChange={(e) => handleChangeFormValues(e)}
 
+                            className="hidden"
+                            id="fileInput"
+                        />
+
+                        <label
+                            htmlFor="fileInput"
+                            className="flex items-center justify-center py-4  text-white rounded-full cursor-pointer "
+                        >
+                            <p className="text-2xl  p-4 w-16 text-center rounded-full bg-blue-500 hover:bg-blue-600 transition duration-300">+</p>
+                        </label>
+                    </div>
                     <button
                         type="submit"
                         className="w-full bg-green-600 text-white py-2 rounded-lg shadow-md hover:bg-green-700 transition-all duration-200"
@@ -340,7 +369,7 @@ const ManageJobPosts = ({username}) => {
                         {/* Image Section */}
                         <div className="flex items-center gap-6">
                             <img
-                                src={`${backendUrl}/vacancy/job.jpeg`} // Replace this with the image URL from your job data
+                                src={`${backendUrl.concat("/public/vacancy/",job.photo)}`} // Replace this with the image URL from your job data
                                 alt={job.title}
                                 className="w-40 h-40 object-cover rounded-lg transform hover:rotate-3 hover:scale-105 transition-transform duration-300"
                             />

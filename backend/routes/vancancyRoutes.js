@@ -1,9 +1,10 @@
 const {postVacancy, getVacancy, getUserVacancies, deleteVacancy} = require("../controller/VacencyController");
 const {isEmployer} = require("../controller/UserController");
 const router = require('express').Router()
+const vacancyUpload = require("../middleware/vacancyUpload")
 
 // post the vacancy here
-router.post('/post-vacancy', isEmployer ,postVacancy)
+router.post('/post-vacancy', isEmployer, vacancyUpload.single('photo') ,postVacancy)
 
 // get the vacancy 
 router.get('/get-vacancy', getVacancy)

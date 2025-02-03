@@ -575,19 +575,15 @@ exports.isEmployer = async (req, res, next) => {
         if (!token) {
             return res.status(400).json({error: "Access denied. No token provided."})
         }
-        console.log(token)
         const decoded = await jwt.verify(token, process.env.SECREAT_KEY)
         req.user = decoded;
-
         const user = await User.findById(decoded._id)
         if (!user) {
             return res.status(400).json({error: "No user found."})
         }
-        console.log(typeof user.role)
         if (user.role === 0) {
             return res.status(401).json({error: "You don't have permission to perform this action."})
         }
-        console.log("I am here")
         next()
     } catch (e) {
         console.log(e)
@@ -608,8 +604,8 @@ exports.uploadProfilePicture = async (req, res) => {
     try {
         const decoded = jwt.verify(token, process.env.SECREAT_KEY)
         const id = decoded._id;
-        let profile = req.file.path
-        profile = profile.replace('public', backend)
+       
+
 
         let {profile_picture} = await User.findById(id)
             .select('profile_picture')

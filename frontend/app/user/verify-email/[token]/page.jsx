@@ -1,5 +1,5 @@
 "use client"
-import { verifyToken } from '@/app/api/UserAPI'
+import { verifyToken } from '../../../api/UserAPI'
 import { useParams, useRouter } from 'next/navigation'
 import React, { useEffect } from 'react'
 import Swal from 'sweetalert2'

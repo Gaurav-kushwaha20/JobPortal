@@ -27,6 +27,7 @@ function Page(props) {
 
     // useState for overview, posts and setting tabs
     const [activeTab, setActiveTab] = useState('overview');
+    console.log("welcome to profile page...")
 
     // this will extract the username from token from localstorage
     useEffect(() => {
@@ -37,7 +38,8 @@ function Page(props) {
                     localStorage.clear('c_user')
                     router.push('/login')
                 }
-                console.log(res.data)
+                console.log(res.data._id)
+                localStorage.setItem("sender", res.data._id)
                 setRole(res.data.role)
                 setUsername(res.data.username)
                 setUserDetails(res.data)
@@ -75,7 +77,7 @@ function Page(props) {
         setUploadProfilePhoto(true);
         setProfileClick(false);
 
-        // make the background div blur and unclickable
+        
     }
 
 
@@ -124,7 +126,7 @@ function Page(props) {
                                         <button key={tab} onClick={() => {
                                             setActiveTab(tab)
                                         }}
-                                            className="flex-1 py-3 text-center font-medium text-gray-700 hover:bg-gray-100"
+                                            className={`flex-1 py-3 text-center font-medium text-gray-700 hover:bg-gray-300 hover:text-gray-700 ${activeTab === tab ? 'bg-gray-400 text-white' : ''}`}
                                         >
                                             {tab}
                                         </button>
@@ -139,7 +141,7 @@ function Page(props) {
                                         <button key={tab} onClick={() => {
                                             setActiveTab(tab)
                                         }}
-                                            className="flex-1 py-3 text-center font-medium text-gray-700 hover:bg-gray-100"
+                                            className={`flex-1 py-3 text-center font-medium text-gray-700 hover:bg-gray-300 hover:text-gray-700 ${activeTab === tab ? 'bg-gray-400 text-white' : ''}`}
                                         >
                                             {tab}
                                         </button>

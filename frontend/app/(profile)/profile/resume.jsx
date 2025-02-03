@@ -38,8 +38,8 @@ const Resume = () => {
         <div className={''}>
             <div id="user-details">
                {/*<ResumeSample />*/}
-                <Sample1 />
-                {/* <Sample2 /> */}
+                {/* <Sample1 /> */}
+                <Sample2 />
              
             
             </div>

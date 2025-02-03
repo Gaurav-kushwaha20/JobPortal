@@ -1,5 +1,5 @@
 "use client"
-import { findMyAccount } from '@/app/api/UserAPI'
+import { findMyAccount } from '../../api/UserAPI'
 import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
 import Swal from 'sweetalert2'

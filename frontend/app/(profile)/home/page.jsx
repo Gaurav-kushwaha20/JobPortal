@@ -1,7 +1,8 @@
 'use client'
-import React, { useEffect, useState } from "react";
-import { getVacancy } from "../../api/VacencyAPI";
+import React, {useEffect, useState} from "react";
+import {getVacancy} from "../../api/VacencyAPI";
 import InfiniteScroll from "react-infinite-scroll-component";
+
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_SERVER_URL
 
 
@@ -27,15 +28,12 @@ const page = () => {
     }, [])
 
 
-
     // request for the available vacancies from the database
     const fetchVacancies = async () => {
-        console.log('user scorolled')
         try {
             const token = localStorage.getItem("c_user")
             getVacancy(token, backendUrl, page, limit)
                 .then((response) => {
-                    console.log(response.data.length)
                     if (response.data.length === 0) {
                         setHasMore(false); // No more data to load
                         return;
@@ -49,8 +47,6 @@ const page = () => {
                 });
 
 
-
-
         } catch (error) {
             console.error("Error fetching vacancies:", error);
         }
@@ -59,9 +55,9 @@ const page = () => {
 
     const formatDate = (timestamp) => {
         const date = new Date(timestamp);
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        const options = {year: 'numeric', month: 'long', day: 'numeric'};
         const formattedDate = date.toLocaleDateString('en-US', options);
-        const formattedTime = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        const formattedTime = date.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit'});
         return `${formattedDate} at ${formattedTime}`;
     };
 
@@ -75,13 +71,13 @@ const page = () => {
                     hasMore={hasMore}
                     loader={<h4>Loading...</h4>}
                     endMessage={
-                        <p style={{ textAlign: 'center' }}>
+                        <p style={{textAlign: 'center'}}>
                             <b>Yay! You have seen it all</b>
                         </p>
                     }
                 >
                     {vacancies.map((job, index) => (
-                        
+
                         <div
                             key={index}
                             className="bg-white shadow-lg rounded-lg p-6 border border-gray-200 hover:shadow-2xl hover:scale-105 transition-all duration-300 ease-in-out"
@@ -89,7 +85,7 @@ const page = () => {
                             {/* Image Section */}
                             <div className="flex items-center gap-6">
                                 <img
-                                    src={`${backendUrl}/vacancy/job.jpeg`} // Replace this with the image URL from your job data
+                                    src={`${backendUrl}/public/vacancy/job.jpeg`} // Replace this with the image URL from your job data
                                     alt={job.title}
                                     className="w-40 h-40 object-cover rounded-lg transform hover:rotate-3 hover:scale-105 transition-transform duration-300"
                                 />
@@ -99,7 +95,8 @@ const page = () => {
                                         <h2 className="text-2xl font-bold text-gray-800 hover:text-blue-600 transition-colors duration-200">
                                             {job.title}
                                         </h2>
-                                        <span className="px-3 py-1 text-sm font-medium text-blue-600 bg-blue-100 rounded-full">
+                                        <span
+                                            className="px-3 py-1 text-sm font-medium text-blue-600 bg-blue-100 rounded-full">
                                             {job.type}
                                         </span>
                                     </div>
@@ -144,7 +141,8 @@ const page = () => {
 
                             {/* Footer with Salary and Apply Button */}
                             <div className="flex justify-between items-center mt-6">
-                                <span className="text-lg font-semibold text-green-500 bg-green-100 px-3 py-1 rounded-lg">
+                                <span
+                                    className="text-lg font-semibold text-green-500 bg-green-100 px-3 py-1 rounded-lg">
                                     {job.salary}
                                 </span>
                                 <button

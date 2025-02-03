@@ -69,6 +69,7 @@ export default function SignIn() {
                         });
 
                     } else if (data?.success) {
+                        localStorage.setItem('c_user', data.token)
                         Swal.fire({
                             position: "top-end",
                             icon: "success",
@@ -76,9 +77,9 @@ export default function SignIn() {
                             showConfirmButton: false,
                             timer: 1000,
                         }).then(() => {
-                            localStorage.setItem('c_user',data.token)
-                            console.log(data.token)
+                            console.log("redirecting to the profile page")
                             router.push('/profile');
+                            console.log("redirected to the profile page")
                         });
                     } else {
                         // alert for something else error
@@ -132,7 +133,7 @@ export default function SignIn() {
                                 type="text"
                                 value={formValue.username}
                                 onChange={handleChange}
-                                // autoComplete="email"
+                                autoComplete="username"
                                 required
                                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm pl-1"
                             />
@@ -163,7 +164,7 @@ export default function SignIn() {
                                 type="password"
                                 value={formValue.password}
                                 onChange={handleChange}
-                                // autoComplete="current-password"
+                                autoComplete="current-password"
                                 required
                                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm pl-1"
                             />

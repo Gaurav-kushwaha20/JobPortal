@@ -3,8 +3,8 @@ const jwt = require('jsonwebtoken')
 
 //  post the vacancy
 exports.postVacancy = async (req, res) => {
-    const {title, description, company, jobType, skillsRequired, salaryRange, location} = req.body;
-
+    console.log("i am inside the post vacancy")
+    const {title, description, company, type, skillsRequired, salaryRange, location} = req.body;
     // extract the user id based on token
     const authHeader = req.headers['authorization'];
     const token = authHeader.split(' ')[1]
@@ -15,24 +15,20 @@ exports.postVacancy = async (req, res) => {
             title,
             description,
             employerId: decoded._id,
-            type: jobType,
+            type: type,
             company: company,
             skillsRequired,
             salaryRange,
+            photo: req.file.filename,
             location
         });
         if (!posted) {
             return res.status(400).json({error: 'Unable to upload your vacancy'})
         }
         return res.status(201).json({success: "vacancy posted successfully!", data: posted})
-
-
     } catch (e) {
-
         return res.status(400).json({error: e.message})
     }
-
-
 }
 
 // Retrieve the vacancy from the database to display on the home page
@@ -47,7 +43,7 @@ exports.getVacancy = async (req, res) => {
         .populate('employerId', 'profile_picture username')
         .sort({createdAt: -1})          // sort by most recent
         .skip((page - 1) * limit)        // skip the previous records 
-        .limit(Math.ceil(limit / 2)); // Half sequential
+        .limit(limit); // Half sequential
 
     // get random vacancies
     const randomVacancies = await vacancy.aggregate([
@@ -94,16 +90,14 @@ exports.getUserVacancies = async (req, res) => {
     const id = req.headers['authorization'].split(' ')[1];
     const page = parseInt(req.query.page)
     const limit = parseInt(req.query.limit)
-
-
+    console.log(page, limit)
     try {
         const recentVacancies = await vacancy.find()
             .populate('employerId', 'profile_picture username')
             .sort({createdAt: -1})
             .skip((page - 1) * limit)
-            .limit(Math.ceil(limit / 2)); // Half sequential
-
-
+            .limit(limit); // Half sequential
+        
         return res.status(200).json({success: true, data: recentVacancies})
     } catch (e) {
         return res.status(500).json({error: "Internal server error"})
