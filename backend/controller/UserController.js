@@ -601,32 +601,34 @@ exports.uploadProfilePicture = async (req, res) => {
     if (!token) {
         return res.status(400).json({error: "Access denied. No token provided."})
     }
+
     try {
         const decoded = jwt.verify(token, process.env.SECREAT_KEY)
         const id = decoded._id;
-       
 
 
         let {profile_picture} = await User.findById(id)
             .select('profile_picture')
         console.log(profile_picture)
-        fs.unlink(profile_picture, (err) => {
-            if (err) {
-                return res.status(400).json({error: "Failed to delete profile picture"})
-             
+
+        if (profile_picture) {
+            try{
+                fs.unlinkSync(profile_picture)
+            }catch (e) {
+                if(e.code !== 'ENOENT') {
+                    // execute if some other issue arise while deleting the file
+                    console.log("ERROR: Failed to delete the profile picture")
+                }
+                // execute only if the file is not present in the directory
+                console.log("Profile picture not found. Skip delete profile picture")
             }
-        })
-
-
+        }
         const user = await User.findByIdAndUpdate(id, {profile_picture: req.file.path}, {new: true})
         if (!user) {
             return res.status(400).json({error: "No user found."})
         }
-
         return res.status(200).json({success: true, data: user})
     } catch (err) {
         return res.status(400).json({error: err.message})
     }
-
-
 }

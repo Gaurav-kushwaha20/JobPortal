@@ -1,6 +1,6 @@
 'use client';
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import React, {useEffect, useState} from 'react';
+import {useParams} from 'next/navigation';
 import io from "socket.io-client";
 
 const socket = io("http://localhost:5000", {
@@ -9,23 +9,30 @@ const socket = io("http://localhost:5000", {
 });
 
 
-
-
 const Chat = () => {
-    const { slug } = useParams();
+    const {receiver} = useParams();
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
+    const [error, setError] = useState("")
 
     // retrieve the sender id fromt he local storage
     const sender = localStorage.getItem("sender")
 
     // Fetch previous messages when the component mounts
     useEffect(() => {
+        socket.emit('openConversation', {sender, receiver: receiver[0]})
+
         socket.on('loadMessages', (messagesFromDb) => {
-            setMessages(messagesFromDb);
+            if (messagesFromDb.error) {
+                setError(messagesFromDb.error)
+            } else if (messagesFromDb.messages) {
+                setMessages(messagesFromDb.messages);
+            }
         });
 
+        // Receive message is triggered when the sender sends the message to server after it stored the message on server then only it return the same message to the client then it display on the sender screen
         socket.on('receiveMessage', (newMessage) => {
+            console.log("Message is received: ", newMessage);
             setMessages((prevMessages) => [...prevMessages, newMessage]);
         });
 
@@ -39,12 +46,10 @@ const Chat = () => {
         if (message.trim()) {
             // construct the message data with the senderID and receiverID
             const messageData = {
-                
                 sender: sender,
-                receiver: "675ab5feaf701037b4c00ce8",           // just for testing pupose later we will implement it dynamically
+                receiver: receiver[0],           // just for testing purpose later we will implement it dynamically
                 content: message
             }
-
             socket.emit('sendMessage', messageData);
             setMessage(''); // Clear input after sending
         }
@@ -52,15 +57,19 @@ const Chat = () => {
 
     return (
         <div className="w-full max-w-7xl h-[88vh] mx-auto bg-white p-6 rounded-lg shadow-md">
-            <h1 className="text-2xl font-semibold text-center mb-4">Chat with User {slug}</h1>
+            <h1 className="text-2xl font-semibold text-center mb-4">Chat with User {receiver[1]}</h1>
             <div className={'h-full flex flex-col justify-between py-10'}>
-                <div className="space-y-4 mb-4 max-h-80 overflow-y-auto">
-                    {messages.map((msg) => (
-                        <div key={msg._id || msg.content} style={{ padding: '5px', borderBottom: '1px solid #ccc' }}>
-                            {msg.content}
-                        </div>
-                    ))}
-                </div>
+                {messages &&
+                    <div className="space-y-4 mb-4 overflow-y-auto">
+                        {messages.map((msg) => (
+                            <div key={msg._id || msg.content} className={`${msg.sender === sender ? 'text-end' : ''}`}
+                                 style={{padding: '5px', borderBottom: '1px solid #ccc'}}>
+                                {msg.content}
+                            </div>
+                        ))}
+                    </div>}
+
+                {(error && messages) && <div>Start chating</div>}
 
                 <div className="flex">
                     <input

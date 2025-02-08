@@ -48,10 +48,6 @@ function Page(props) {
             .catch((err) => {
                 console.log(err)
             })
-
-
-
-
     }, [])
 
 

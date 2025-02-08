@@ -1,4 +1,5 @@
 const vacancy = require('../models/VacencyModel')
+const Application = require('../models/ApplicationModel')
 const jwt = require('jsonwebtoken')
 
 //  post the vacancy
@@ -97,7 +98,7 @@ exports.getUserVacancies = async (req, res) => {
             .sort({createdAt: -1})
             .skip((page - 1) * limit)
             .limit(limit); // Half sequential
-        
+
         return res.status(200).json({success: true, data: recentVacancies})
     } catch (e) {
         return res.status(500).json({error: "Internal server error"})
@@ -107,7 +108,7 @@ exports.getUserVacancies = async (req, res) => {
 // delete the vacancies
 exports.deleteVacancy = async (req, res) => {
     console.log(req.query.id)
-    
+
     const deletedUser = await vacancy.deleteOne({_id: req.query.id})
     if (!deletedUser) {
         return res.status(404).json({error: 'User does not exist', success: false})
@@ -116,11 +117,67 @@ exports.deleteVacancy = async (req, res) => {
 }
 
 
-// company name
-// address 
-// registration no || pan
-// location
-// 
+// get vacancies details
+exports.getVacancyDetails = async (req, res) => {
+    const id = req.query.id;
+    const userId = req.user._id;
 
-// notification model
-// user
+    try {
+        const vacancyDetails = await vacancy.findById(id);
+        if (!vacancyDetails) {
+            return res.status(404).json({error: 'Vacancy not found', success: false});
+        }
+
+        // Check if the user has applied
+        const isApplied = await Application.findOne({jobSeekerId: userId, vacancyId: id});
+
+        return res.status(200).json({
+            success: true,
+            data: vacancyDetails,
+            isApplied: !!isApplied // Convert to boolean
+        });
+
+    } catch (error) {
+        console.error('Error fetching vacancy details:', error);
+        return res.status(500).json({error: 'Server error', success: false});
+    }
+};
+
+
+// book the vacancy
+exports.applyVacancy = async (req, res) => {
+    const userId = req.user._id
+    const vacancyId = req.params.vacancyId
+    try {
+        const applicationApplied = await Application.create({
+            jobSeekerId: userId,
+            vacancyId: vacancyId,
+            resume: req.file.path,
+            question_one: req.body.question1,
+            question_two: req.body.question2
+        })
+        return res.status(200).json({success: true, data: applicationApplied})
+    } catch (error) {
+        return res.status(400).json({success: false, error: "Some error has occurred!"})
+    }
+}
+
+// get the specific applied vacancy
+exports.getUserAppliedVacancies = async (req, res) => {
+    const userId = req.user._id
+    
+    try{
+        const appliedVacancies = await Application.find({jobSeekerId: userId})
+            .populate('jobSeekerId')
+            .populate('vacancyId')
+        
+        
+        
+        
+        
+        
+        return res.status(200).json({success: true, data: appliedVacancies})
+    }catch(error){
+        return res.status(500).json({error: 'Internal server error',success: false})
+    }
+}

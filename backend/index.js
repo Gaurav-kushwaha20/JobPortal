@@ -14,7 +14,8 @@ const morgan = require('morgan');
 
 // routes import
 const UserRoute = require('./routes/UserRoutes');
-const vacancyRoute = require('./routes/vancancyRoutes');
+const vacancyRoute = require('./routes/vacancyRoutes');
+const ChatRoute = require("./routes/ChatRoutes")
 
 const port = 5000;
 
@@ -33,6 +34,7 @@ app.use(morgan('dev'));
 // use routes
 app.use(UserRoute);
 app.use('/vacancy', vacancyRoute);
+app.use('/chat',ChatRoute)
 // Uncomment and use the route when needed
 // app.use('/employer', EmployerRoute);
 
@@ -47,6 +49,11 @@ app.use('/public/profile', express.static(path.join(__dirname, 'public/profile')
 
 // server static file for job vacancy photos
 app.use('/public/vacancy', express.static(path.join(__dirname, 'public/vacancy')));
+
+// server the static file resume.pdf
+app.use('/public/resume', express.static(path.join(__dirname, 'public/resume')))
+
+
 
 // Add error handling middleware
 app.use((err, req, res, next) => {

@@ -4,7 +4,7 @@ import Link from "next/link";
 
 
 
-const Navbar = ({ tabs = [{ tab: 'Home', link: '/' }] }) => {
+const Navbar = ({ tabs = [{ tab: 'Home', link: '/home' }] }) => {
 
 
     return (
@@ -44,6 +44,3 @@ const Navbar = ({ tabs = [{ tab: 'Home', link: '/' }] }) => {
 
 
 export default Navbar;
-
-
-
